@@ -13,10 +13,6 @@
 
 #define LINE_MAX 2048
 
-static bool memory_region_comparator(MemRange a, MemRange b) {
-  return (a.start < b.start);
-}
-
 stl::vector<MemRegion> regions;
 const stl::vector<MemRegion> &ProcessRuntime::getMemoryLayout() {
   regions.clear();
@@ -85,7 +81,16 @@ const stl::vector<MemRegion> &ProcessRuntime::getMemoryLayout() {
     MemRegion region = MemRegion(region_start, region_end - region_start, permission);
     regions.push_back(region);
   }
-  std::sort(regions.begin(), regions.end(), memory_region_comparator);
+  std::qsort(
+    &regions[0], regions.size(), sizeof(MemRegion), +[](const void *a, const void *b) -> int {
+      const auto *i = static_cast<const MemRegion *>(a);
+      const auto *j = static_cast<const MemRegion *>(b);
+      if (i->start() < j->start())
+        return -1;
+      if (i->start() > j->start())
+        return 1;
+      return 0;
+    });
 
   fclose(fp);
   return regions;
@@ -175,49 +180,9 @@ static stl::vector<RuntimeModule> &get_process_map_with_proc_maps() {
   return *modules;
 }
 
-#if defined(__LP64__)
-static stl::vector<RuntimeModule> get_process_map_with_linker_iterator() {
-  stl::vector<RuntimeModule> ProcessModuleMap;
-
-  static int (*dl_iterate_phdr_ptr)(int (*)(struct dl_phdr_info *, size_t, void *), void *);
-  dl_iterate_phdr_ptr = (__typeof(dl_iterate_phdr_ptr))dlsym(RTLD_DEFAULT, "dl_iterate_phdr");
-  if (dl_iterate_phdr_ptr == NULL) {
-    return ProcessModuleMap;
-  }
-
-  dl_iterate_phdr_ptr(
-      [](dl_phdr_info *info, size_t size, void *data) {
-        RuntimeModule module = {0};
-        if (info->dlpi_name && info->dlpi_name[0] == '/')
-          strcpy(module.path, info->dlpi_name);
-
-        module.load_address = (void *)info->dlpi_addr;
-        for (size_t i = 0; i < info->dlpi_phnum; ++i) {
-          if (info->dlpi_phdr[i].p_type == PT_LOAD) {
-            uintptr_t load_bias = (info->dlpi_phdr[i].p_vaddr - info->dlpi_phdr[i].p_offset);
-            module.load_address = (void *)((addr_t)module.load_address + load_bias);
-            break;
-          }
-        }
-
-        // push to vector
-        auto ProcessModuleMap = reinterpret_cast<stl::vector<RuntimeModule> *>(data);
-        ProcessModuleMap->push_back(module);
-        return 0;
-      },
-      (void *)&ProcessModuleMap);
-
-  return ProcessModuleMap;
-}
-#endif
 
 const stl::vector<RuntimeModule> &ProcessRuntime::getModuleMap() {
-#if defined(__LP64__) && 0
-  // TODO: won't resolve main binary
-  return get_process_map_with_linker_iterator();
-#else
   return get_process_map_with_proc_maps();
-#endif
 }
 
 RuntimeModule ProcessRuntime::getModule(const char *name) {
@@ -227,5 +192,5 @@ RuntimeModule ProcessRuntime::getModule(const char *name) {
       return module;
     }
   }
-  return RuntimeModule{0};
+  return RuntimeModule{{0}};
 }
