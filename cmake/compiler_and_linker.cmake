@@ -8,7 +8,7 @@ if (NOT DOBBY_DEBUG)
   set(linker_flags "${linker_flags} -Wl,-x -Wl,-S")
 endif ()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden -fPIC -fno-stack-check -fno-stack-protector -fno-exceptions -fno-rtti -fno-common -fno-zero-initialized-in-bss")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden -fPIC -fno-stack-check -fno-stack-protector -fno-exceptions -fno-rtti -fno-common -fno-zero-initialized-in-bss -Wno-format-security")
 
 if (SYSTEM.Darwin)
   # set(compiler_flags "${compiler_flags} -nostdinc++")
