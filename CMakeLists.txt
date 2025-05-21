@@ -306,6 +306,18 @@ add_library(dobby_static STATIC
 target_include_directories(dobby_static PUBLIC
   include
   )
+install(FILES
+  include/dobby.h
+  TYPE INCLUDE
+)
+install(PROGRAMS
+  $<TARGET_FILE:dobby>
+  TYPE LIB
+)
+install(PROGRAMS
+  $<TARGET_FILE:dobby_static>
+  TYPE LIB
+)
 
 set_target_properties(dobby_static
   PROPERTIES OUTPUT_NAME "dobby"
