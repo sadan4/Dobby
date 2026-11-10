@@ -37,7 +37,9 @@ option(DOBBY_BUILD_KERNEL_MODE "Build xnu kernel mode" OFF)
 
 option(Private.Obfuscation "Enable llvm obfuscation" OFF)
 
-if ((NOT DEFINED CMAKE_BUILD_TYPE) OR (CMAKE_BUILD_TYPE STREQUAL "Debug"))
+if (DEFINED DOBBY_DEBUG)
+  # noop
+elseif ((NOT DEFINED CMAKE_BUILD_TYPE) OR (CMAKE_BUILD_TYPE STREQUAL "Debug"))
   set(DOBBY_DEBUG ON)
 endif ()
 
