@@ -109,7 +109,7 @@ MemoryAllocator *MemoryAllocator::Shared() {
 }
 
 // don't depend on static init order for globals
-#define gMemoryAllocator (*::MemoryAllocator::Shared())
+#define gMemoryAllocator (static_cast<MemoryAllocator&>(*::MemoryAllocator::Shared()))
 
 #undef min
 #undef max

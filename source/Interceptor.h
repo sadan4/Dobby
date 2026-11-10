@@ -98,4 +98,4 @@ inline Interceptor *Interceptor::Shared() {
   return &inst;
 }
 // don't depend on static init order for globals
-#define gInterceptor (*::Interceptor::Shared())
+#define gInterceptor (static_cast<Interceptor&>(*::Interceptor::Shared()))
