@@ -93,8 +93,9 @@ struct Interceptor {
   }
 };
 
-inline static Interceptor gInterceptor;
-
 inline Interceptor *Interceptor::Shared() {
-  return &gInterceptor;
+  static Interceptor inst {};
+  return &inst;
 }
+// don't depend on static init order for globals
+#define gInterceptor (*::Interceptor::Shared())

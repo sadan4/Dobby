@@ -103,10 +103,13 @@ struct MemoryAllocator {
   }
 };
 
-inline static MemoryAllocator gMemoryAllocator;
 MemoryAllocator *MemoryAllocator::Shared() {
-  return &gMemoryAllocator;
+  static MemoryAllocator inst{};
+  return &inst;
 }
+
+// don't depend on static init order for globals
+#define gMemoryAllocator (*::MemoryAllocator::Shared())
 
 #undef min
 #undef max
